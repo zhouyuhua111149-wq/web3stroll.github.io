@@ -1,58 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Web3Stroll - 自动化工厂</title>
-    <style>
-        body { margin: 0; padding: 20px; background-color: #1a1a1a; color: white; font-family: sans-serif; }
+<style>
+    body { margin: 0; padding: 10px; background-color: #1a1a1a; color: white; font-family: sans-serif; }
+    .matrix-container {
+        display: grid;
+        /* 默认电脑端：一排 4 或 5 个 */
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 15px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* 关键：手机端自适应逻辑 */
+    @media (max-width: 600px) {
         .matrix-container {
-            display: grid;
-            /* 5列布局 */
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 15px;
-            max-width: 1200px;
-            margin: 0 auto;
+            /* 手机端改成一排只放 2 个大格子，视觉效果翻倍 */
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 10px;
         }
         .grid-item {
-            border: 2px solid #444;
-            background: #222;
-            border-radius: 8px;
-            overflow: hidden;
-            text-align: center;
-            transition: transform 0.2s;
+            min-height: 180px !important; /* 强制拉高格子 */
         }
-        .grid-item:hover { transform: scale(1.05); border-color: #00ff00; }
-        .grid-item img { width: 100%; height: auto; display: block; background: #333; }
-        .grid-item p { padding: 8px; margin: 0; font-size: 14px; }
-        .ad-space { width: 100%; height: 100px; background: #333; margin: 20px 0; display: flex; align-items: center; justify-content: center; border: 2px dashed #666; }
-    </style>
-</head>
-<body>
+        .grid-item p {
+            font-size: 16px !important; /* 手机端文字加大 */
+        }
+    }
 
-    <div class="ad-space">
-        <span>【头部广告位 - 待嵌入代码】</span>
-    </div>
-
-    <h2 style="text-align:center;">Web3Stroll 自动化游戏矩阵 (5x6)</h2>
-
-    <div class="matrix-container">
-        <div class="grid-item"><a href="https://您的链接1"><img src="https://via.placeholder.com/200x150?text=Game1"><p>项目01</p></a></div>
-        <div class="grid-item"><a href="https://您的链接2"><img src="https://via.placeholder.com/200x150?text=Game2"><p>项目02</p></a></div>
-        <div class="grid-item"><a href="https://您的链接3"><img src="https://via.placeholder.com/200x150?text=Game3"><p>项目03</p></a></div>
-        <div class="grid-item"><a href="https://您的链接4"><img src="https://via.placeholder.com/200x150?text=Game4"><p>项目04</p></a></div>
-        <div class="grid-item"><a href="https://您的链接5"><img src="https://via.placeholder.com/200x150?text=Game5"><p>项目05</p></a></div>
-        
-        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目06</p></a></div>
-        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目07</p></a></div>
-        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目08</p></a></div>
-        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目09</p></a></div>
-        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目10</p></a></div>
-
-        </div>
-
-    <div class="ad-space">
-        <span>【底部广告位 - 待嵌入代码】</span>
-    </div>
-
-</body>
-</html>
+    .grid-item {
+        border: 2px solid #00ff00;
+        background: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        text-align: center;
+        min-height: 220px;
+        transition: transform 0.2s;
+    }
+    .grid-item img { width: 100%; height: 140px; object-fit: cover; display: block; background: #333; }
+    .grid-item p { padding: 10px; margin: 0; font-size: 14px; color: #00ff00; }
+    .ad-space { width: 100%; height: 80px; background: #333; margin: 15px 0; display: flex; align-items: center; justify-content: center; border: 1px dashed #00ff00; }
+</style>
