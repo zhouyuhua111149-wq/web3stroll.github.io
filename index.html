@@ -1,21 +1,58 @@
-<!-- 头部广告位 -->
-<div id="top-ads" style="width:100%; text-align:center; margin-bottom:20px;">
-  <!-- 这里粘贴您的头部广告 JS 或 HTML 代码 -->
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web3Stroll - 自动化工厂</title>
+    <style>
+        body { margin: 0; padding: 20px; background-color: #1a1a1a; color: white; font-family: sans-serif; }
+        .matrix-container {
+            display: grid;
+            /* 5列布局 */
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .grid-item {
+            border: 2px solid #444;
+            background: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .grid-item:hover { transform: scale(1.05); border-color: #00ff00; }
+        .grid-item img { width: 100%; height: auto; display: block; background: #333; }
+        .grid-item p { padding: 8px; margin: 0; font-size: 14px; }
+        .ad-space { width: 100%; height: 100px; background: #333; margin: 20px 0; display: flex; align-items: center; justify-content: center; border: 2px dashed #666; }
+    </style>
+</head>
+<body>
 
-<!-- 5*6 游戏矩阵墙 -->
-<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 10px;">
-  <!-- 每个格子代表一个项目，您可以复制 30 个这样的 div -->
-  <div style="border: 1px solid #ccc; text-align: center;">
-    <a href="您的广告/游戏链接1">
-      <img src="游戏封面图1.jpg" style="width:100%;">
-      <p style="font-size:12px;">项目名称1</p>
-    </a>
-  </div>
-  <!-- ...以此类推，直到填满 30 个格子 ... -->
-</div>
- 
-<!-- 底部广告位 -->
-<div id="bottom-ads" style="width:100%; text-align:center; margin-top:20px;">
-  <!-- 这里粘贴您的底部广告代码 -->
-</div>
+    <div class="ad-space">
+        <span>【头部广告位 - 待嵌入代码】</span>
+    </div>
+
+    <h2 style="text-align:center;">Web3Stroll 自动化游戏矩阵 (5x6)</h2>
+
+    <div class="matrix-container">
+        <div class="grid-item"><a href="https://您的链接1"><img src="https://via.placeholder.com/200x150?text=Game1"><p>项目01</p></a></div>
+        <div class="grid-item"><a href="https://您的链接2"><img src="https://via.placeholder.com/200x150?text=Game2"><p>项目02</p></a></div>
+        <div class="grid-item"><a href="https://您的链接3"><img src="https://via.placeholder.com/200x150?text=Game3"><p>项目03</p></a></div>
+        <div class="grid-item"><a href="https://您的链接4"><img src="https://via.placeholder.com/200x150?text=Game4"><p>项目04</p></a></div>
+        <div class="grid-item"><a href="https://您的链接5"><img src="https://via.placeholder.com/200x150?text=Game5"><p>项目05</p></a></div>
+        
+        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目06</p></a></div>
+        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目07</p></a></div>
+        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目08</p></a></div>
+        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目09</p></a></div>
+        <div class="grid-item"><a href="#"><img src="https://via.placeholder.com/200x150"><p>项目10</p></a></div>
+
+        </div>
+
+    <div class="ad-space">
+        <span>【底部广告位 - 待嵌入代码】</span>
+    </div>
+
+</body>
+</html>
