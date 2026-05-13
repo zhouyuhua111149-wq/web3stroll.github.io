@@ -1,39 +1,103 @@
-<style>
-    body { margin: 0; padding: 10px; background-color: #1a1a1a; color: white; font-family: sans-serif; }
-    .matrix-container {
-        display: grid;
-        /* 默认电脑端：一排 4 或 5 个 */
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 15px;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3Stroll | 纯净监控矩阵</title>
+    <style>
+        /* 1. 使用纯深黑背景，减少反光和视觉疲劳 */
+        body { 
+            margin: 0; 
+            padding: 10px; 
+            background-color: #000; 
+            color: #00ff00; 
+            font-family: Consolas, "Liberation Mono", monospace;
+        }
 
-    /* 关键：手机端自适应逻辑 */
-    @media (max-width: 600px) {
         .matrix-container {
-            /* 手机端改成一排只放 2 个大格子，视觉效果翻倍 */
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 8px; 
+            max-width: 100vw;
         }
-        .grid-item {
-            min-height: 180px !important; /* 强制拉高格子 */
-        }
-        .grid-item p {
-            font-size: 16px !important; /* 手机端文字加大 */
-        }
-    }
 
-    .grid-item {
-        border: 2px solid #00ff00;
-        background: #222;
-        border-radius: 10px;
-        overflow: hidden;
-        text-align: center;
-        min-height: 220px;
-        transition: transform 0.2s;
-    }
-    .grid-item img { width: 100%; height: 140px; object-fit: cover; display: block; background: #333; }
-    .grid-item p { padding: 10px; margin: 0; font-size: 14px; color: #00ff00; }
-    .ad-space { width: 100%; height: 80px; background: #333; margin: 15px 0; display: flex; align-items: center; justify-content: center; border: 1px dashed #00ff00; }
-</style>
+        @media (max-width: 800px) {
+            .matrix-container { grid-template-columns: repeat(3, 1fr); }
+            .grid-item { min-height: 120px !important; }
+        }
+
+        .grid-item {
+            /* 2. 边框变暗，不再刺眼 */
+            border: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            text-align: center;
+            position: relative;
+            aspect-ratio: 3 / 4; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 鼠标指上去才高亮，平时保持安静 */
+        .grid-item:hover { border: 1px solid #00ff00; }
+
+        .grid-item span {
+            font-size: 10px;
+            color: #333;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
+
+        .screen-view {
+            width: 70%;
+            height: 50%;
+            background: #000;
+            border: 1px solid #151515;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 3. 静态指示灯，不再闪烁，保护视力 */
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .run-dot { 
+            background: #00ff00; 
+            box-shadow: 0 0 4px #00ff00; 
+        }
+        .idle-dot { background: #222; }
+
+        .status-text {
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #008800; /* 使用深绿色，不晃眼 */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="matrix-container" id="matrix"></div>
+
+    <script>
+        const container = document.getElementById('matrix');
+        for (let i = 1; i <= 48; i++) {
+            const item = document.createElement('div');
+            item.className = 'grid-item';
+            const isRunning = i <= 24; // 假设前一半在跑
+            
+            item.innerHTML = `
+                <span>NODE_${i.toString().padStart(2, '0')}</span>
+                <div class="screen-view">
+                    <div class="dot ${isRunning ? 'run-dot' : 'idle-dot'}"></div>
+                </div>
+                <div class="status-text" style="color: ${isRunning ? '#00bb00' : '#333'}">
+                    ${isRunning ? 'RUNNING' : 'OFFLINE'}
+                </div>
+            `;
+            container.appendChild(item);
+        }
+    </script>
+</body>
+</html>
