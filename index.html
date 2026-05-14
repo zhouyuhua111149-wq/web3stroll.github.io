@@ -1,103 +1,129 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web3Stroll | 纯净监控矩阵</title>
-    <style>
-        /* 1. 使用纯深黑背景，减少反光和视觉疲劳 */
-        body { 
-            margin: 0; 
-            padding: 10px; 
-            background-color: #000; 
-            color: #00ff00; 
-            font-family: Consolas, "Liberation Mono", monospace;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WEB3STROLL | 矩阵管理</title>
+<style>
+body { margin: 0; padding: 5px; background-color: #050505; color: #00ff00; font-family: 'Consolas', monospace; }
 
-        .matrix-container {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr); 
-            gap: 8px; 
-            max-width: 100vw;
-        }
+/* 矩阵布局：锁定 6 列 */
+.grid-matrix {
+display: grid;
+grid-template-columns: repeat(6, 1fr);
+gap: 4px;
+}
+@media (max-width: 800px) { .grid-matrix { grid-template-columns: repeat(3, 1fr); } }
 
-        @media (max-width: 800px) {
-            .matrix-container { grid-template-columns: repeat(3, 1fr); }
-            .grid-item { min-height: 120px !important; }
-        }
+.unit-card {
+border: 1px solid #222; background: #000;
+aspect-ratio: 1/1; position: relative; cursor: pointer;
+overflow: hidden; transition: 0.2s;
+}
+.unit-card:hover { border-color: #00ff00; }
 
-        .grid-item {
-            /* 2. 边框变暗，不再刺眼 */
-            border: 1px solid #1a1a1a;
-            background: #0a0a0a;
-            text-align: center;
-            position: relative;
-            aspect-ratio: 3 / 4; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+/* 矩阵里的视频：只做封面展示 */
+.grid-matrix video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
 
-        /* 鼠标指上去才高亮，平时保持安静 */
-        .grid-item:hover { border: 1px solid #00ff00; }
+/* 遮罩层 */
+#mask {
+display: none;
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.9); z-index: 90;
+}
 
-        .grid-item span {
-            font-size: 10px;
-            color: #333;
-            position: absolute;
-            top: 5px;
-            left: 5px;
-        }
+/* 大浮窗容器 */
+#preview-overlay {
+display: none;
+position: fixed;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+width: 95vw;
+height: 90vh;
+z-index: 100;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
 
-        .screen-view {
-            width: 70%;
-            height: 50%;
-            background: #000;
-            border: 1px solid #151515;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+#preview-video {
+max-width: 100%;
+max-height: 90%;
+border: 1px solid #00ff00;
+box-shadow: 0 0 30px rgba(0,255,0,0.3);
+background: #000;
+object-fit: contain;
+}
 
-        /* 3. 静态指示灯，不再闪烁，保护视力 */
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .run-dot { 
-            background: #00ff00; 
-            box-shadow: 0 0 4px #00ff00; 
-        }
-        .idle-dot { background: #222; }
-
-        .status-text {
-            margin-top: 10px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #008800; /* 使用深绿色，不晃眼 */
-        }
-    </style>
+.close-hint {
+margin-bottom: 10px;
+color: #00ff00; font-size: 14px; letter-spacing: 2px;
+font-weight: bold;
+}
+</style>
 </head>
 <body>
 
-    <div class="matrix-container" id="matrix"></div>
+<div class="grid-matrix" id="container"></div>
 
-    <script>
-        const container = document.getElementById('matrix');
-        for (let i = 1; i <= 48; i++) {
-            const item = document.createElement('div');
-            item.className = 'grid-item';
-            const isRunning = i <= 24; // 假设前一半在跑
-            
-            item.innerHTML = `
-                <span>NODE_${i.toString().padStart(2, '0')}</span>
-                <div class="screen-view">
-                    <div class="dot ${isRunning ? 'run-dot' : 'idle-dot'}"></div>
-                </div>
-                <div class="status-text" style="color: ${isRunning ? '#00bb00' : '#333'}">
-                    ${isRunning ? 'RUNNING' : 'OFFLINE'}
-                </div>
-            `;
-            container.appendChild(item);
-        }
-    </script>
+<div id="mask"></div>
+<div id="preview-overlay">
+<div class="close-hint">LIVE VIEWING - CLICK TO CLOSE</div>
+<video id="preview-video" playsinline loop controls></video>
+</div>
+
+<script>
+const GATEWAY = "https://4everland.io/ipfs/";
+const videoMap = {
+"01": "bafybeiddtqqxth7llo5s67mzvbyyemjk3tk4lwcwhqe2kics2flawfi2mq",
+"02": "bafybeiealxfxgfc3qrutdbrqcdgrrsewue5bcopq6h6nzefah4j6c6xdue",
+"03": "bafybeiblouatfk2narnq6l3h5uyjlw2pme2w6xirkuifgvxw4sn3vqk7gm",
+"04": "bafybeigeoqstaif2ymlwwchnd76g6mykusotuaatqwuggldwt7un5fcm7y",
+"05": "bafybeicrdtkxzxbbihfx6gemfdcldtt2j6aiekplyhcu2kb7ip5mqt3kii",
+"06": "bafybeieq5uq3tf7oyhfp76gfkvzofb4oje6g5oxegas7xkzgosgbzdhiwa",
+"07": "bafybeigwylb4n4wnsc6g6ganmue3ntk6wsb4tbabfflde4cfuaiicmn4v4",
+"08": "bafybeibok4jlp5alnr7p47r2wfmg5l4tagsfecpyzxyh65broppnpbrsom",
+"09": "bafybeichlefmzqqns4zdgmk7mtmm4tpempdz47xr54mshnvf64gneey23q",
+"10": "bafybeiej4yhzuq52sdpuluujlpyzprj5t4fbg4ri2xz5nahlgedl7m3fgy",
+"11": "bafybeifmjfqha43rewjhhhiflzhzay2k6sszd4wr7s5uwqf4uz56gc5zky",
+"12": "bafybeibkpsozjqqzodx7iegq7z5fiavrfviejuccibedpalqddv2k3sica"
+};
+
+const container = document.getElementById('container');
+const overlay = document.getElementById('preview-overlay');
+const mask = document.getElementById('mask');
+const preVideo = document.getElementById('preview-video');
+
+for (let i = 1; i <= 24; i++) {
+const card = document.createElement('div');
+card.className = 'unit-card';
+let vidKey = (i % 12 === 0) ? "12" : (i % 12).toString().padStart(2, '0');
+let url = GATEWAY + videoMap[vidKey];
+
+// 初始矩阵视频：不加 autoplay，只预加载元数据显示第一帧
+card.innerHTML = `<video src="${url}" muted playsinline preload="metadata"></video>`;
+
+card.onclick = function() {
+// 仅在点击时，才把地址给大浮窗并开始播放
+preVideo.src = url;
+preVideo.muted = false;
+mask.style.display = 'block';
+overlay.style.display = 'flex';
+preVideo.play();
+};
+
+container.appendChild(card);
+}
+
+const closePreview = () => {
+preVideo.pause();
+preVideo.src = ""; // 清空地址，彻底停止后台下载
+mask.style.display = 'none';
+overlay.style.display = 'none';
+};
+
+mask.onclick = closePreview;
+overlay.onclick = closePreview;
+</script>
 </body>
 </html>
