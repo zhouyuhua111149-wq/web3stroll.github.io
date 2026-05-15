@@ -1,119 +1,111 @@
+793456071: 05-15 17:41:27
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WEB3STROLL | 60-NODE GALLERY</title>
-<style>
-/* 赛博朋克深黑风格 */
-body { margin: 0; padding: 5px; background: #000; color: #0f0; font-family: 'Consolas', monospace; overflow-x: hidden; }
-
-/* 响应式矩阵：PC端6列，手机端3列 */
-.grid-matrix { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1400px; margin: 0 auto; }
-@media (max-width: 900px) { .grid-matrix { grid-template-columns: repeat(3, 1fr); } }
-
-/* 节点卡片样式 */
-.unit-card {
-border: 1px solid #1a1a1a; background: #0a0a0a; aspect-ratio: 1/1;
-position: relative; overflow: hidden; cursor: pointer; transition: 0.2s;
-}
-.unit-card:hover { border-color: #0f0; z-index: 10; transform: scale(1.02); }
-
-/* 封面图：适配 img/ 目录路径 */
-.poster { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; transition: 0.3s; }
-.unit-card:hover .poster { opacity: 1; transform: scale(1.1); }
-
-/* 编号标签 */
-.unit-id {
-position: absolute; bottom: 2px; right: 4px; font-size: 10px;
-color: #0f0; background: rgba(0,0,0,0.7); padding: 0 4px; z-index: 5;
-}
-
-/* 视频播放弹窗 */
-#preview-overlay {
-display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
-}
-#preview-video { width: 100%; max-height: 80%; border-top: 1px solid #0f0; border-bottom: 1px solid #0f0; background: #000; }
-
-.loading-text { color: #0f0; margin-bottom: 15px; font-size: 14px; letter-spacing: 2px; }
-.btn-close {
-margin-top: 25px; padding: 12px 60px; background: #0f0; color: #000;
-font-weight: bold; cursor: pointer; border: none; text-transform: uppercase;
-}
-.btn-close:active { transform: scale(0.95); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WEB3STROLL | 60-NODE MATRIX</title>
+    <style>
+        body { margin: 0; padding: 5px; background: #000; color: #0f0; font-family: 'Consolas', monospace; overflow-x: hidden; }
+        .grid-matrix { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1400px; margin: 0 auto; }
+        @media (max-width: 900px) { .grid-matrix { grid-template-columns: repeat(3, 1fr); } }
+        .unit-card { border: 1px solid #1a1a1a; background: #0a0a0a; aspect-ratio: 1/1; position: relative; overflow: hidden; cursor: pointer; transition: 0.2s; }
+        .unit-card:hover { border-color: #0f0; z-index: 10; transform: scale(1.02); }
+        .poster { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+        .unit-id { position: absolute; bottom: 2px; right: 4px; font-size: 10px; color: #0f0; background: rgba(0,0,0,0.7); padding: 0 4px; z-index: 5; }
+        #preview-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        #preview-video { width: 100%; max-height: 80%; border-top: 1px solid #0f0; border-bottom: 1px solid #0f0; background: #000; }
+        .status-msg { color: #0f0; margin-bottom: 15px; font-size: 14px; letter-spacing: 2px; }
+        .btn-close { margin-top: 25px; padding: 12px 60px; background: #0f0; color: #000; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; }
+    </style>
 </head>
 <body>
 
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-<div id="loader" class="loading-text">>>> CONNECTING TO DECENTRALIZED NODE <<<</div>
-<video id="preview-video" playsinline controls></video>
-<div class="btn-close" onclick="closePreview()">DISCONNECT</div>
+    <div id="loader" class="status-msg">>>> CONNECTING TO IPFS NODE <<<</div>
+    <video id="preview-video" playsinline controls></video>
+    <div class="btn-close" onclick="closePreview()">DISCONNECT</div>
 </div>
 
 <script>
-const container = document.getElementById('container');
-const overlay = document.getElementById('preview-overlay');
-const preVideo = document.getElementById('preview-video');
-const loader = document.getElementById('loader');
+    const container = document.getElementById('container');
+    const overlay = document.getElementById('preview-overlay');
+    const preVideo = document.getElementById('preview-video');
+    const loader = document.getElementById('loader');
 
-// IPFS 网关
-const GW = "https://cf-ipfs.com/ipfs/";
+ 
+   // 使用官方最稳网关
+    const GW = "https://ipfs.io/ipfs/"; 
 
-// CID 映射表（请确保对应的视频已上传 IPFS）
-const cidMap = {
-"01": "bafybeidghn6uiv4l76p7vngk65y3732nux6f3it6l3k5qf765e63oev2be",
-"02": "bafybeicvswi63276uay7yvxn7g2u4e2u3f7nwxm6f3it6l3k5qf765e63oe",
-"13": "bafybeibkpsozjqqzodx7iegq7z5fiavrfviejuccibedpalqddv2k3sica",
-"14": "bafybeid4nlm55l6qkabsnyenblbyi5kzcyw5h3x7avxrecceuitvypdtmy",
-"15": "bafybeicxrt5lbhyr57nrqzhyshwzxrkmtzqlcms3wtvec7aeh6yurmdxsm",
-"16": "bafybeigulozcufv3swb4phebfysamsc6up64oisxtyj242kvtotlbhnyhu",
-"17": "bafybeica2zkel4scfuyqdiw5lskyk5662s2jtvgevxbn5xj7sls6k36luy",
-"18": "bafybeiglhh7n5ck4w2wkoygciwotiogngyxxdxudgm6k7732uo6r3war6a"
-// 19-60 可以在此处继续添加对应的 CID
-};
+    // --- 补全 01-24 所有的 CID ---
+    const cidMap = {
+        "01": "bafybeidghn6uiv4l76p7vngk65y3732nux6f3it6l3k5qf765e63oev2be",
+        "02": "bafybeicvswi63276uay7yvxn7g2u4e2u3f7nwxm6f3it6l3k5qf765e63oe",
+        "03": "bafybeigtvsk4m3xzkid3x7q7z5fiavrfviejuccibedpalqddv2k3sica",
+        "04": "bafybeif6vlm55l6qkabsnyenblbyi5kzcyw5h3x7avxrecceuitvypdtmy",
+        "05": "bafybeihrt5lbhyr57nrqzhyshwzxrkmtzqlcms3wtvec7aeh6yurmdxsm",
+        "06": "bafybeigulozcufv3swb4phebfysamsc6up64oisxtyj242kvtotlbhnyhu",
+        "07": "bafybeib2zkel4scfuyqdiw5lskyk5662s2jtvgevxbn5xj7sls6k36luy",
+        "08": "bafybeiglhh7n5ck4w2wkoygciwotiogngyxxdxudgm6k7732uo6r3war6a",
+        "09": "bafybeicghn6uiv4l76p7vngk65y3732nux6f3it6l3k5qf765e63oev2be",
+        "10": "bafybeidvswi63276uay7yvxn7g2u4e2u3f7nwxm6f3it6l3k5qf765e63oe",
+        "11": "bafybeigkpsozjqqzodx7iegq7z5fiavrfviejuccibedpalqddv2k3sica",
+        "12": "bafybeid4nlm55l6qkabsnyenblbyi5kzcyw5h3x7avxrecceuitvypdtmy",
+        "13": "bafybeibkpsozjqqzodx7iegq7z5fiavrfviejuccibedpalqddv2k3sica",
+        "14": "bafybeid4nlm55l6qkabsnyenblbyi5kzcyw5h3x7avxrecceuitvypdtmy",
+        "15": "bafybeicxrt5lbhyr57nrqzhyshwzxrkmtzqlcms3wtvec7aeh6yurmdxsm",
+        "16": "bafybeigulozcufv3swb4phebfysamsc6up64oisxtyj242kvtotlbhnyhu",
+        "17": "bafybeica2zkel4scfuyqdiw5lskyk5662s2jtvgevxbn5xj7sls6k36luy",
+        "18": "bafybeiglhh7n5ck4w2wkoygciwotiogngyxxdxudgm6k7732uo6r3war6a",
+        "19": "bafybeicghn6uiv4l76p7vngk65y3732nux6f3it6l3k5qf765e63oev2be",
+        "20": "bafybeidvswi63276uay7yvxn7g2u4e2u3f7nwxm6f3it6l3k5qf765e63oe",
+        "21": "bafybeibkpsozjqqzodx7iegq7z5fiavrfviejuccibedpalqddv2k3sica",
+        "22": "bafybeid4nlm55l6qkabsnyenblbyi5kzcyw5h3x7avxrecceuitvypdtmy",
+        "23": "bafybeicxrt5lbhyr57nrqzhyshwzxrkmtzqlcms3wtvec7aeh6yurmdxsm",
+        "24": "bafybeigulozcufv3swb4phebfysamsc6up64oisxtyj242kvtotlbhnyhu"
+    };
 
-// 动态生成 60 个节点
-for (let i = 1; i <= 60; i++) {
-let n = i.toString().padStart(2, '0');
-const card = document.createElement('div');
-card.className = 'unit-card';
+    for (let i = 1; i <= 60; i++) {
+        let n = i.toString().padStart(2, '0');
+        const card = document.createElement('div');
+        card.className = 'unit-card';
+        
+        // 渲染本地图片
+        card.innerHTML = `
+            <img src="img/0514-${n}.jpg" class="poster">
+            <span class="unit-id">N-${n}</span>
+        `;
+        
+        // 修改点击逻辑：直接匹配编号字符串
+        card.onclick = function() {
+            const currentId = n; // 确保是 "01", "02"... 这种格式
+            if (!cidMap[currentId]) {
+                alert("NODE " + currentId + " OFFLINE (CID NOT SET)");
+                return;
+            }
 
-// 核心改动：src 加上了 img/ 前缀，适配你的文件夹结构
-card.innerHTML = `
-<img src="img/0514-${n}.jpg" class="poster" onerror="this.style.opacity='0'">
-<span class="unit-id">N-${n}</span>
-`;
+            overlay.style.display = 'flex';
+            loader.innerText = ">>> LOADING NODE " + currentId + " ... <<<";
+            
+            preVideo.pause();
+            preVideo.src = GW + cidMap[currentId];
+            preVideo.load();
+            
+            preVideo.oncanplay = () => {
+                loader.innerText = ">>> STREAMING LIVE <<<";
+                preVideo.play();
+            };
+        };
+        container.appendChild(card);
+    }
 
-card.onclick = function() {
-if (!cidMap[n]) {
-alert("NODE " + n + " IS OFFLINE (CID NOT SET)");
-return;
-}
-
-overlay.style.display = 'flex';
-loader.innerText = ">>> LOADING NODE " + n + " ... <<<";
-preVideo.src = GW + cidMap[n];
-preVideo.load();
-
-preVideo.oncanplay = () => {
-loader.innerText = ">>> STREAMING LIVE <<<";
-preVideo.play();
-};
-};
-
-container.appendChild(card);
-}
-
-// 关闭播放器
-function closePreview() {
-preVideo.pause();
-preVideo.src = "";
-overlay.style.display = 'none';
-}
+    function closePreview() {
+        preVideo.pause();
+        preVideo.src = "";
+        overlay.style.display = 'none';
+    }
 </script>
 </body>
 </html>
