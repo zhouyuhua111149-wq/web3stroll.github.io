@@ -1,138 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WEB3STROLL | VIDEO TURBO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web3Stroll 视频流监控</title>
 <style>
 body {
-margin: 0; padding: 5px; background: #000; color: #0f0;
-font-family: 'Consolas', monospace; overflow-x: hidden;
--webkit-tap-highlight-color: transparent;
+background-color: #121212;
+color: #ffffff;
+font-family: sans-serif;
+margin: 20px;
 }
-
-.grid-matrix {
-display: grid; grid-template-columns: repeat(6, 1fr);
-gap: 6px; width: 100%; margin: 0 auto;
+h2 {
+text-align: center;
+color: #00ffcc;
 }
-
-@media (max-width: 900px) {
-.grid-matrix { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+/* 18宫格网格布局：每行4个，手机端自适应 */
+.video-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 15px;
+max-width: 1400px;
+margin: 0 auto;
 }
-
-.unit-card {
-border: 1px solid #1a1a1a; background: #0a0a0a;
-aspect-ratio: 1/1; position: relative; overflow: hidden;
-cursor: pointer;
+.video-box {
+background: #1e1e1e;
+border: 1px solid #333;
+border-radius: 8px;
+padding: 10px;
+text-align: center;
+box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
-
-.poster { width: 100%; height: 100%; object-fit: cover; }
-
-.unit-id {
-position: absolute; bottom: 0; right: 0;
-font-size: 12px; color: #0f0;
-background: rgba(0,0,0,0.85);
-padding: 2px 6px; font-weight: bold;
+.video-box h4 {
+margin: 0 0 8px 0;
+color: #aaa;
+font-size: 14px;
 }
-
-#preview-overlay {
-display: none; position: fixed; top: 0; left: 0;
-width: 100%; height: 100%; background: #000; z-index: 1000;
-flex-direction: column; align-items: center; justify-content: center;
-}
-
-/* 原生的 video 样式 */
-#preview-video {
-width: 100%; max-height: 85%;
-border-top: 1px solid #0f0; border-bottom: 1px solid #0f0;
-background: #000; outline: none;
-object-fit: contain;
-}
-
-/* 专门为多吉云准备的 iframe 播放容器样式，尺寸和 video 保持完全一致 */
-#preview-iframe {
-display: none;
-width: 100%; height: 85%;
-border-top: 1px solid #0f0; border-bottom: 1px solid #0f0;
+/* 保持标准的 16:9 播放比例 */
+.video-container {
+position: relative;
+width: 100%;
+padding-bottom: 56.25%;
+height: 0;
 background: #000;
+border-radius: 4px;
+overflow: hidden;
 }
-
-.btn-close {
-margin-top: 20px; padding: 12px 80px;
-background: #0f0; color: #000;
-font-weight: bold; cursor: pointer;
-border-radius: 4px; font-size: 16px; border: none;
+.video-container iframe {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+border: none;
 }
 </style>
 </head>
 <body>
 
-<div class="grid-matrix" id="container"></div>
+<h2>多吉云视频流监控 (1-18)</h2>
 
-<div id="preview-overlay">
-<video id="preview-video" controls preload="auto" playsinline webkit-playsinline></video>
-
-<iframe id="preview-iframe" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
-
-<div class="btn-close" onclick="closePreview()">BACK</div>
-</div>
+<!-- 18个框的容器 -->
+<div class="video-grid" id="gridContainer"></div>
 
 <script>
-const container = document.getElementById('container');
-const overlay = document.getElementById('preview-overlay');
-const preVideo = document.getElementById('preview-video');
-const preIframe = document.getElementById('preview-iframe');
+// 1. 规范化后的 18 个多吉云 m3u8 地址数组
+const videoSources = [
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=6bc3f03919885537&userId=15139&flsign=45661dd38a8585da7e53b76204998e2e&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=6c5bf691bfe29c92&userId=15139&flsign=2bf8c0c45e3618ea51b711c81a8ea63e&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=5b48b27bfcf942d2&userId=15139&flsign=1e56ee4da10321448402b13cde8a2043&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=390c99d6abd93cae&userId=15139&flsign=33f7aace82c68ba69f32568458bc934a&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=ea2e8f055e2d21a9&userId=15139&flsign=4ac7bfd5e5f3b2fcdcdd6f4dc0d88a26&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=a6321ad0d3810b8c&userId=15139&flsign=d749bd7ab5e4087e7ac711e293aa04fb&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=ae9ea3cf32c8ef35&userId=15139&flsign=57dd5a81ea47627a5268c4de9ae5b87a&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=b528d146e3a19e5c&userId=15139&flsign=f883c18feb35940b37fdda620b34b4c4&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=69246a009e152d25&userId=15139&flsign=74fa9fc115ee7a4695476960f2761a12&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=1a3b89095ca85082&userId=15139&flsign=bb1b1a7f5ccc3793127fdf52b87785bd&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=dee6af82c3656eef&userId=15139&flsign=563677351a5fe2ebccc2bb53eae877b5&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=4e057a8f603619b5&userId=15139&flsign=d83ed5365aedb09ca1ca21d5a0d83eb4&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=af920cc6f2225d82&userId=15139&flsign=74dd53f5d33eeb7a470b6bc11123aa08&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=af920cc6f2225d82&userId=15139&flsign=74dd53f5d33eeb7a470b6bc11123aa08&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=af920cc6f2225d82&userId=15139&flsign=74dd53f5d33eeb7a470b6bc11123aa08&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=2448dbe3bb6ad5ed&userId=15139&flsign=b9daf5a50503cc173d8cf2f7e9e54cf9&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=0fab8e4af7ecf043&userId=15139&flsign=f09740fade4976f7cc0169a17b2742ff&ext=.m3u8",
+"https://permalink.dogevideo.com/player/get.m3u8?vcode=d73a4cca177b7394&userId=15139&flsign=76f4639ff09dd8b4dc6f2f562f871258&ext=.m3u8"
+];
 
-for (let i = 1; i <= 18; i++) {
-let n = i.toString().padStart(2, '0');
-const card = document.createElement('div');
-card.className = 'unit-card';
-card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
+const container = document.getElementById('gridContainer');
 
-card.onclick = function() {
-overlay.style.display = 'flex';
+// 2. 队列式动态渲染函数（防止iPhone并发瞬间爆炸）
+videoSources.forEach((url, index) => {
+setTimeout(() => {
+// 创建外层卡片
+const box = document.createElement('div');
+box.className = 'video-box';
 
-// 🚨 针对 18 号视频进行多吉云链接验证
-if (i === 18) {
-preVideo.style.display = 'none'; // 隐藏原生 video
-preIframe.style.display = 'block'; // 显示多吉云 iframe
+// 标题
+const title = document.createElement('h4');
+title.innerText = `通道 ${index + 1}`;
+box.appendChild(title);
 
-// 填入你刚才发我的 18 号多吉云真实直链，并把自动播放改为 true 方便测试
-preIframe.src = "https://player.dogecloud.com/web/player.html?vcode=d73a4cca177b7394&userId=15139&autoPlay=true&inFrame=true";
-}
-// 01 到 17 号依然走你原本的本地测试路径
-else {
-preIframe.style.display = 'none';
-preVideo.style.display = 'block';
+// 播放器容器
+const videoContainer = document.createElement('div');
+videoContainer.className = 'video-container';
 
-preVideo.poster = `d${n}.jpg`;
-preVideo.src = `v${n}.mp4`;
-preVideo.play().catch(err => console.log("等待手动点击: ", err));
-}
+// 嵌入 iframe (这里直接请求多吉云的永久链接)
+const iframe = document.createElement('iframe');
+iframe.src = url;
+iframe.allow = "autoplay; fullscreen";
 
-window.history.pushState({view: 'video'}, '');
-};
-container.appendChild(card);
-}
+videoContainer.appendChild(iframe);
+box.appendChild(videoContainer);
+container.appendChild(box);
 
-window.onpopstate = function() {
-if (overlay.style.display === 'flex') closePreview(true);
-};
-
-function closePreview(isBack = false) {
-// 同时复位两个播放器
-preVideo.pause();
-preVideo.src = "";
-preVideo.removeAttribute('poster');
-
-preIframe.src = "";
-
-overlay.style.display = 'none';
-
-if(!isBack && window.history.state?.view === 'video') {
-window.history.back();
-}
-}
+}, index * 150); // 每个框之间延迟 150 毫秒加载
+});
 </script>
 </body>
 </html>
