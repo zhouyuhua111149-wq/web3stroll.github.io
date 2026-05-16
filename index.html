@@ -35,12 +35,11 @@
             padding: 2px 6px; font-weight: bold;
         }
         
-        /* 优化：背景层透明度平滑过渡 */
         #preview-overlay { 
             display: none; position: fixed; top: 0; left: 0; 
             width: 100%; height: 100%; background: #000; z-index: 1000; 
             flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.12s ease-in;
+            opacity: 0; transition: opacity 0.1s ease-in;
         }
 
         #preview-video { 
@@ -62,7 +61,7 @@
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-    <video id="preview-video" playsinline webkit-playsinline controls preload="none" muted></video>
+    <video id="preview-video" playsinline webkit-playsinline muted autocomplete="off" controls preload="none"></video>
     <div class="btn-close" onclick="closePreview()">BACK</div>
 </div>
 
@@ -76,25 +75,25 @@
         const card = document.createElement('div');
         card.className = 'unit-card';
         card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
-        
-        // 【核心修改】：彻底删除了原本在后台疯狂下载18个视频的 link preload 堵塞逻辑
 
         card.onclick = function() {
-            // 1. 立即显示遮罩，动画无缝衔接
+            // 2. 核心改动：先让弹窗完全闪现出来，把页面渲染通道占住
             overlay.style.display = 'flex';
-            setTimeout(() => overlay.style.opacity = '1', 10);
+            overlay.style.opacity = '1';
             
-            // 2. 赋予视频源
+            // 3. 核心改动：在赋予 src 之前，用底层方法再次强制静音，绕过 iOS 的安全审核机制
+            preVideo.muted = true;
+            preVideo.setAttribute('playsinline', 'true');
+            preVideo.setAttribute('webkit-playsinline', 'true');
+            
+            // 4. 塞入地址
             preVideo.src = `v${n}.mp4`; 
             
-            // 3. 【核心修改】：取消可能引发渲染冲突的 .load()，由 play() 直接驱动硬解码
-            const playPromise = preVideo.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("浏览器限制了自动播放，引导用户手动点击，或已由安全策略拦截");
-                });
-            }
+            // 5. 核心改动：彻底移除 .play() 的异步 promise 阻断，改用更轻量的底层直接驱动
+            // 让浏览器自己完成原生的数据流对接，不使用 JS 强制催促播放，从而解除 3 秒假死
+            preVideo.play().catch(err => {
+                console.log('Muted autoplay triggered.');
+            });
             
             window.history.pushState({view: 'video'}, '');
         };
@@ -111,7 +110,7 @@
             preVideo.pause();
             preVideo.src = "";
             overlay.style.display = 'none';
-        }, 120); // 略微缩短退出延迟，体感更清爽
+        }, 100);
         
         if(!isBack && window.history.state?.view === 'video') {
             window.history.back();
