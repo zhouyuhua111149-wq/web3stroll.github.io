@@ -35,12 +35,12 @@
             padding: 2px 6px; font-weight: bold;
         }
         
-        /* 优化：播放器初始透明度为0，等准备好了再闪现 */
+        /* 优化：背景层透明度平滑过渡 */
         #preview-overlay { 
             display: none; position: fixed; top: 0; left: 0; 
             width: 100%; height: 100%; background: #000; z-index: 1000; 
             flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.15s ease-in;
+            opacity: 0; transition: opacity 0.12s ease-in;
         }
 
         #preview-video { 
@@ -62,7 +62,7 @@
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-    <video id="preview-video" playsinline controls></video>
+    <video id="preview-video" playsinline webkit-playsinline controls preload="none" muted></video>
     <div class="btn-close" onclick="closePreview()">BACK</div>
 </div>
 
@@ -71,37 +71,28 @@
     const overlay = document.getElementById('preview-overlay');
     const preVideo = document.getElementById('preview-video');
 
-    // 1. 预加载池：提前告诉浏览器我们要看这18个视频
-    const videoPool = [];
-
     for (let i = 1; i <= 18; i++) {
         let n = i.toString().padStart(2, '0');
         const card = document.createElement('div');
         card.className = 'unit-card';
         card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
         
-        // 预创建视频链接对象，加快解析速度
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'video';
-        link.href = `v${n}.mp4`;
-        document.head.appendChild(link);
+        // 【核心修改】：彻底删除了原本在后台疯狂下载18个视频的 link preload 堵塞逻辑
 
         card.onclick = function() {
-            // 立即开启弹窗动画
+            // 1. 立即显示遮罩，动画无缝衔接
             overlay.style.display = 'flex';
             setTimeout(() => overlay.style.opacity = '1', 10);
             
-            // 切换视频源
+            // 2. 赋予视频源
             preVideo.src = `v${n}.mp4`; 
             
-            // 关键：利用 playsinline 和强制 play 减少延迟
-            preVideo.load();
+            // 3. 【核心修改】：取消可能引发渲染冲突的 .load()，由 play() 直接驱动硬解码
             const playPromise = preVideo.play();
             
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.log("需要用户手动点一下播放");
+                    console.log("浏览器限制了自动播放，引导用户手动点击，或已由安全策略拦截");
                 });
             }
             
@@ -120,7 +111,7 @@
             preVideo.pause();
             preVideo.src = "";
             overlay.style.display = 'none';
-        }, 150);
+        }, 120); // 略微缩短退出延迟，体感更清爽
         
         if(!isBack && window.history.state?.view === 'video') {
             window.history.back();
