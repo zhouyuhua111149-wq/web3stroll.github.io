@@ -1,114 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WEB3STROLL | VIDEO TURBO</title>
-    <style>
-        body { 
-            margin: 0; padding: 5px; background: #000; color: #0f0; 
-            font-family: 'Consolas', monospace; overflow-x: hidden; 
-            -webkit-tap-highlight-color: transparent; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WEB3STROLL | VIDEO TURBO</title>
+<style>
+body {
+margin: 0; padding: 5px; background: #000; color: #0f0;
+font-family: 'Consolas', monospace; overflow-x: hidden;
+-webkit-tap-highlight-color: transparent;
+}
 
-        .grid-matrix { 
-            display: grid; grid-template-columns: repeat(6, 1fr); 
-            gap: 6px; width: 100%; margin: 0 auto;
-        }
+.grid-matrix {
+display: grid; grid-template-columns: repeat(6, 1fr);
+gap: 6px; width: 100%; margin: 0 auto;
+}
 
-        @media (max-width: 900px) { 
-            .grid-matrix { grid-template-columns: repeat(3, 1fr); gap: 4px; } 
-        }
+@media (max-width: 900px) {
+.grid-matrix { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+}
 
-        .unit-card { 
-            border: 1px solid #1a1a1a; background: #0a0a0a; 
-            aspect-ratio: 1/1; position: relative; overflow: hidden; 
-            cursor: pointer; 
-        }
-        
-        .poster { width: 100%; height: 100%; object-fit: cover; }
+.unit-card {
+border: 1px solid #1a1a1a; background: #0a0a0a;
+aspect-ratio: 1/1; position: relative; overflow: hidden;
+cursor: pointer;
+}
 
-        .unit-id { 
-            position: absolute; bottom: 0; right: 0; 
-            font-size: 12px; color: #0f0; 
-            background: rgba(0,0,0,0.85); 
-            padding: 2px 6px; font-weight: bold;
-        }
-        
-        #preview-overlay { 
-            display: none; position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%; background: #000; z-index: 1000; 
-            flex-direction: column; align-items: center; justify-content: center;
-        }
+.poster { width: 100%; height: 100%; object-fit: cover; }
 
-        #preview-video { 
-            width: 100%; max-height: 85%; 
-            border-top: 1px solid #0f0; border-bottom: 1px solid #0f0; 
-            background: #000; outline: none;
-            object-fit: contain;
-        }
+.unit-id {
+position: absolute; bottom: 0; right: 0;
+font-size: 12px; color: #0f0;
+background: rgba(0,0,0,0.85);
+padding: 2px 6px; font-weight: bold;
+}
 
-        .btn-close { 
-            margin-top: 20px; padding: 12px 80px; 
-            background: #0f0; color: #000; 
-            font-weight: bold; cursor: pointer; 
-            border-radius: 4px; font-size: 16px; border: none;
-        }
-    </style>
+#preview-overlay {
+display: none; position: fixed; top: 0; left: 0;
+width: 100%; height: 100%; background: #000; z-index: 1000;
+flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* 将原本的 video 样式无缝对接到 iframe 容器 */
+#preview-frame-container {
+width: 100%;
+height: 85%; /* 保持你原本设计的 85% 高度比例 */
+border-top: 1px solid #0f0;
+border-bottom: 1px solid #0f0;
+background: #000;
+}
+
+#preview-iframe {
+width: 100%;
+height: 100%;
+border: none;
+}
+
+.btn-close {
+margin-top: 20px; padding: 12px 80px;
+background: #0f0; color: #000;
+font-weight: bold; cursor: pointer;
+border-radius: 4px; font-size: 16px; border: none;
+}
+</style>
 </head>
 <body>
 
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-    <video id="preview-video" controls preload="auto" playsinline webkit-playsinline></video>
-    <div class="btn-close" onclick="closePreview()">BACK</div>
+<div id="preview-frame-container">
+<iframe id="preview-iframe" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+</div>
+<div class="btn-close" onclick="closePreview()">BACK</div>
 </div>
 
 <script>
-    const container = document.getElementById('container');
-    const overlay = document.getElementById('preview-overlay');
-    const preVideo = document.getElementById('preview-video');
+const container = document.getElementById('container');
+const overlay = document.getElementById('preview-overlay');
+const preIframe = document.getElementById('preview-iframe');
 
-    for (let i = 1; i <= 18; i++) {
-        let n = i.toString().padStart(2, '0');
-        const card = document.createElement('div');
-        card.className = 'unit-card';
-        card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
+// 💡【多吉云 vcode 配置区】
+// 数组索引从 0 开始对应视频 01，到 17 对应视频 18。
+// 刚才拿到的 18 号视频（d18.jpg / v18）对应的 vcode 是 d73a4cca177b7394，我已经帮你填在最后一位了。
+// 你只需要把其他 17 个视频的 vcode 对应替换进去即可：
+const vcodes = [
+"这里填01号视频的vcode", // 对应 01
+"这里填02号视频的vcode", // 对应 02
+"这里填03号视频的vcode", // 对应 03
+"这里填04号视频的vcode", // 对应 04
+"这里填05号视频的vcode", // 对应 05
+"这里填06号视频的vcode", // 对应 06
+"这里填07号视频的vcode", // 对应 07
+"这里填08号视频的vcode", // 对应 08
+"这里填09号视频的vcode", // 对应 09
+"这里填10号视频的vcode", // 对应 10
+"这里填11号视频的vcode", // 对应 11
+"这里填12号视频的vcode", // 对应 12
+"这里填13号视频的vcode", // 对应 13
+"这里填14号视频的vcode", // 对应 14
+"这里填15号视频的vcode", // 对应 15
+"这里填16号视频的vcode", // 对应 16
+"这里填17号视频的vcode", // 对应 17
+"d73a4cca177b7394" // 对应 18 (已填好)
+];
 
-        card.onclick = function() {
-            overlay.style.display = 'flex';
-            
-            // 规规矩矩换封面和地址
-            preVideo.poster = `d${n}.jpg`;
-            preVideo.src = `v${n}.mp4`; 
-            
-            // 直接播放（带声音）
-            preVideo.play().catch(err => {
-                // 如果个别手机浏览器（如Safari）因为安全策略拦截了带声音的自动播放
-                // 它们会停在带封面的第一帧，用户手动戳一下屏幕上的播放按钮就能带声播放，绝不转圈和黑屏！
-                console.log("浏览器拦截了带声音的自动播放，等待用户手动点击: ", err);
-            });
-            
-            window.history.pushState({view: 'video'}, '');
-        };
-        container.appendChild(card);
-    }
+for (let i = 1; i <= 18; i++) {
+let n = i.toString().padStart(2, '0');
+const card = document.createElement('div');
+card.className = 'unit-card';
+card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
 
-    window.onpopstate = function() {
-        if (overlay.style.display === 'flex') closePreview(true);
-    };
+card.onclick = function() {
+overlay.style.display = 'flex';
 
-    function closePreview(isBack = false) {
-        preVideo.pause();
-        preVideo.src = "";
-        preVideo.removeAttribute('poster');
-        overlay.style.display = 'none';
-        
-        if(!isBack && window.history.state?.view === 'video') {
-            window.history.back();
-        }
-    }
+// 获取当前卡片对应的 vcode
+const currentVcode = vcodes[i - 1];
+
+// 拼接多吉云标准的在线播放器链接
+// 为了更好的体验，我把链接末尾的 autoPlay 改成了 true（点击卡片进入后自动播放视频）
+preIframe.src = `https://player.dogecloud.com/web/player.html?vcode=${currentVcode}&userId=15139&autoPlay=true&inFrame=true`;
+
+window.history.pushState({view: 'video'}, '');
+};
+container.appendChild(card);
+}
+
+window.onpopstate = function() {
+if (overlay.style.display === 'flex') closePreview(true);
+};
+
+function closePreview(isBack = false) {
+// 清空 src 停止播放，防止关了弹窗后台还在放声音
+preIframe.src = "";
+overlay.style.display = 'none';
+
+if(!isBack && window.history.state?.view === 'video') {
+window.history.back();
+}
+}
 </script>
 </body>
 </html>
