@@ -61,7 +61,7 @@
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-    <video id="preview-video" controls preload="auto" playsinline webkit-playsinline muted></video>
+    <video id="preview-video" controls preload="auto" playsinline webkit-playsinline></video>
     <div class="btn-close" onclick="closePreview()">BACK</div>
 </div>
 
@@ -77,15 +77,18 @@
         card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}</span>`;
 
         card.onclick = function() {
-            // 1. 简简单单弹窗
             overlay.style.display = 'flex';
             
-            // 2. 规规矩矩换封面和地址
+            // 规规矩矩换封面和地址
             preVideo.poster = `d${n}.jpg`;
             preVideo.src = `v${n}.mp4`; 
             
-            // 3. 直接顺畅播放
-            preVideo.play().catch(err => console.log(err));
+            // 直接播放（带声音）
+            preVideo.play().catch(err => {
+                // 如果个别手机浏览器（如Safari）因为安全策略拦截了带声音的自动播放
+                // 它们会停在带封面的第一帧，用户手动戳一下屏幕上的播放按钮就能带声播放，绝不转圈和黑屏！
+                console.log("浏览器拦截了带声音的自动播放，等待用户手动点击: ", err);
+            });
             
             window.history.pushState({view: 'video'}, '');
         };
