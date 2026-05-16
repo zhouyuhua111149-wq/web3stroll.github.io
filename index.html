@@ -41,19 +41,20 @@ width: 100%; height: 100%; background: #000; z-index: 1000;
 flex-direction: column; align-items: center; justify-content: center;
 }
 
-/* 将原本的 video 样式无缝对接到 iframe 容器 */
-#preview-frame-container {
-width: 100%;
-height: 85%; /* 保持你原本设计的 85% 高度比例 */
-border-top: 1px solid #0f0;
-border-bottom: 1px solid #0f0;
-background: #000;
+/* 原生的 video 样式 */
+#preview-video {
+width: 100%; max-height: 85%;
+border-top: 1px solid #0f0; border-bottom: 1px solid #0f0;
+background: #000; outline: none;
+object-fit: contain;
 }
 
+/* 专门为多吉云准备的 iframe 播放容器样式，尺寸和 video 保持完全一致 */
 #preview-iframe {
-width: 100%;
-height: 100%;
-border: none;
+display: none;
+width: 100%; height: 85%;
+border-top: 1px solid #0f0; border-bottom: 1px solid #0f0;
+background: #000;
 }
 
 .btn-close {
@@ -69,41 +70,18 @@ border-radius: 4px; font-size: 16px; border: none;
 <div class="grid-matrix" id="container"></div>
 
 <div id="preview-overlay">
-<div id="preview-frame-container">
+<video id="preview-video" controls preload="auto" playsinline webkit-playsinline></video>
+
 <iframe id="preview-iframe" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
-</div>
+
 <div class="btn-close" onclick="closePreview()">BACK</div>
 </div>
 
 <script>
 const container = document.getElementById('container');
 const overlay = document.getElementById('preview-overlay');
+const preVideo = document.getElementById('preview-video');
 const preIframe = document.getElementById('preview-iframe');
-
-// 💡【多吉云 vcode 配置区】
-// 数组索引从 0 开始对应视频 01，到 17 对应视频 18。
-// 刚才拿到的 18 号视频（d18.jpg / v18）对应的 vcode 是 d73a4cca177b7394，我已经帮你填在最后一位了。
-// 你只需要把其他 17 个视频的 vcode 对应替换进去即可：
-const vcodes = [
-"这里填01号视频的vcode", // 对应 01
-"这里填02号视频的vcode", // 对应 02
-"这里填03号视频的vcode", // 对应 03
-"这里填04号视频的vcode", // 对应 04
-"这里填05号视频的vcode", // 对应 05
-"这里填06号视频的vcode", // 对应 06
-"这里填07号视频的vcode", // 对应 07
-"这里填08号视频的vcode", // 对应 08
-"这里填09号视频的vcode", // 对应 09
-"这里填10号视频的vcode", // 对应 10
-"这里填11号视频的vcode", // 对应 11
-"这里填12号视频的vcode", // 对应 12
-"这里填13号视频的vcode", // 对应 13
-"这里填14号视频的vcode", // 对应 14
-"这里填15号视频的vcode", // 对应 15
-"这里填16号视频的vcode", // 对应 16
-"这里填17号视频的vcode", // 对应 17
-"d73a4cca177b7394" // 对应 18 (已填好)
-];
 
 for (let i = 1; i <= 18; i++) {
 let n = i.toString().padStart(2, '0');
@@ -114,12 +92,23 @@ card.innerHTML = `<img src="d${n}.jpg" class="poster"><span class="unit-id">${n}
 card.onclick = function() {
 overlay.style.display = 'flex';
 
-// 获取当前卡片对应的 vcode
-const currentVcode = vcodes[i - 1];
+// 🚨 针对 18 号视频进行多吉云链接验证
+if (i === 18) {
+preVideo.style.display = 'none'; // 隐藏原生 video
+preIframe.style.display = 'block'; // 显示多吉云 iframe
 
-// 拼接多吉云标准的在线播放器链接
-// 为了更好的体验，我把链接末尾的 autoPlay 改成了 true（点击卡片进入后自动播放视频）
-preIframe.src = `https://player.dogecloud.com/web/player.html?vcode=${currentVcode}&userId=15139&autoPlay=true&inFrame=true`;
+// 填入你刚才发我的 18 号多吉云真实直链，并把自动播放改为 true 方便测试
+preIframe.src = "https://player.dogecloud.com/web/player.html?vcode=d73a4cca177b7394&userId=15139&autoPlay=true&inFrame=true";
+}
+// 01 到 17 号依然走你原本的本地测试路径
+else {
+preIframe.style.display = 'none';
+preVideo.style.display = 'block';
+
+preVideo.poster = `d${n}.jpg`;
+preVideo.src = `v${n}.mp4`;
+preVideo.play().catch(err => console.log("等待手动点击: ", err));
+}
 
 window.history.pushState({view: 'video'}, '');
 };
@@ -131,8 +120,13 @@ if (overlay.style.display === 'flex') closePreview(true);
 };
 
 function closePreview(isBack = false) {
-// 清空 src 停止播放，防止关了弹窗后台还在放声音
+// 同时复位两个播放器
+preVideo.pause();
+preVideo.src = "";
+preVideo.removeAttribute('poster');
+
 preIframe.src = "";
+
 overlay.style.display = 'none';
 
 if(!isBack && window.history.state?.view === 'video') {
